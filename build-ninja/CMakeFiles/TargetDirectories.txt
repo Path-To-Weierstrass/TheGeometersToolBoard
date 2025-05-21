@@ -1,3 +1,3 @@
-/Users/maxi/TheGeometersToolBoard/build-ninja/CMakeFiles/the_board.dir
-/Users/maxi/TheGeometersToolBoard/build-ninja/CMakeFiles/edit_cache.dir
-/Users/maxi/TheGeometersToolBoard/build-ninja/CMakeFiles/rebuild_cache.dir
+/Users/max/Documents/C++/build-ninja/CMakeFiles/the_board.dir
+/Users/max/Documents/C++/build-ninja/CMakeFiles/edit_cache.dir
+/Users/max/Documents/C++/build-ninja/CMakeFiles/rebuild_cache.dir
