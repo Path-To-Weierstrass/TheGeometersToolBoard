@@ -1,0 +1,37 @@
+Detecting compiler hash for triplet arm64-osx...
+Compiler found: /usr/bin/c++
+The following packages will be built and installed:
+    sdl2:arm64-osx@2.32.6
+    sdl2-gfx:arm64-osx@1.0.4#11
+  * vcpkg-cmake:arm64-osx@2024-04-23
+  * vcpkg-cmake-config:arm64-osx@2024-05-23
+Additional packages (*) will be modified to complete this operation.
+Restored 4 package(s) from /Users/maxi/.cache/vcpkg/archives in 109 ms. Use --debug to see more details.
+Installing 1/4 vcpkg-cmake-config:arm64-osx@2024-05-23...
+Elapsed time to handle vcpkg-cmake-config:arm64-osx: 1.97 ms
+vcpkg-cmake-config:arm64-osx package ABI: 934f8b65986fe739e60a02e1f5e57d66a01023cd8bde2d12cc50d90f2ef9e2ef
+Installing 2/4 vcpkg-cmake:arm64-osx@2024-04-23...
+Elapsed time to handle vcpkg-cmake:arm64-osx: 2.37 ms
+vcpkg-cmake:arm64-osx package ABI: d0fbd8d3ed4701c66a7e931da111a9f653b645331d19bd6a4882cd98fd786a57
+Installing 3/4 sdl2:arm64-osx@2.32.6...
+Elapsed time to handle sdl2:arm64-osx: 22.1 ms
+sdl2:arm64-osx package ABI: 6e110c92ddd24f1239a4026a82e88b00bfc6bfe069f80cf3de7db962495b52d6
+Installing 4/4 sdl2-gfx:arm64-osx@1.0.4#11...
+Elapsed time to handle sdl2-gfx:arm64-osx: 4.11 ms
+sdl2-gfx:arm64-osx package ABI: 637fd6b90e77d6478d34258ed8b68b4d3d5cddf42bb6c5ee8c089b04dd007152
+Total install time: 31.3 ms
+sdl2 provides CMake targets:
+
+    find_package(SDL2 CONFIG REQUIRED)
+    target_link_libraries(main
+        PRIVATE
+        $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+        $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+    )
+
+sdl2-gfx provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(sdl2-gfx CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE SDL2::SDL2_gfx)
+

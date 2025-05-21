@@ -1,0 +1,10 @@
+{
+    "name": "the-geometers-tool-box",
+    "version-string": "0.1.0",
+    "dependencies": [ "sdl2",    "sdl2-gfx"  ],
+  
+
+    
+    "$comment": "Pinned overrides are fine; just keep it valid JSON."
+  }
+  
