@@ -18,16 +18,21 @@ constexpr SDL_Color BG_COLOR          {30,  30,  30,  255};
 constexpr SDL_Color BUTTON_COLOR      {0,   120, 215, 255};
 constexpr SDL_Color BUTTON_ACTIVE     {0,   180, 120, 255};
 constexpr SDL_Color BUTTON_LINE       {120, 60,  200, 255};
-constexpr SDL_Color LINE_COLOR        {255, 0,   0,   255};
 constexpr SDL_Color CIRCLE_COLOR      {255, 255, 255, 255};
 constexpr SDL_Color SELECTED_COLOR    {255, 255, 0,   255};
 constexpr SDL_Color BORDER_COLOR      {255, 255, 255, 255};
+constexpr SDL_Color DRAWN_LINE_COLOR  {200, 200, 255, 255};
 
 // -------------------- data types -------------------
 struct Circle {
     SDL_Point center;
     int radius;
     bool selected = false;
+};
+
+struct Line {
+    SDL_Point p1;
+    SDL_Point p2;
 };
 
 enum class ButtonId { PLACE, CLEAR, LINE };
@@ -56,27 +61,22 @@ bool pointInCircle(int x, int y, const Circle& c) {
 
 // compute two edge‑points so that the segment spans the whole window
 std::pair<SDL_Point, SDL_Point> lineThroughWindow(const SDL_Point& p1, const SDL_Point& p2) {
-    // vertical line
-    if (p1.x == p2.x) {
+    if (p1.x == p2.x) { // vertical line
         return { SDL_Point{p1.x, 0}, SDL_Point{p1.x, WINDOW_HEIGHT} };
     }
     double m = static_cast<double>(p2.y - p1.y) / static_cast<double>(p2.x - p1.x);
     double b = p1.y - m * p1.x;
-
     std::vector<SDL_Point> pts;
-    // intersections with vertical borders
-    int y_at_left  = static_cast<int>(std::round(b));
-    if (y_at_left >= 0 && y_at_left <= WINDOW_HEIGHT) pts.push_back( {0, y_at_left} );
-    int y_at_right = static_cast<int>(std::round(m * WINDOW_WIDTH + b));
-    if (y_at_right >= 0 && y_at_right <= WINDOW_HEIGHT) pts.push_back( {WINDOW_WIDTH, y_at_right} );
-    // intersections with horizontal borders
-    int x_at_top    = static_cast<int>(std::round(-b / m));
-    if (x_at_top >= 0 && x_at_top <= WINDOW_WIDTH) pts.push_back( {x_at_top, 0} );
-    int x_at_bottom = static_cast<int>(std::round((WINDOW_HEIGHT - b) / m));
-    if (x_at_bottom >= 0 && x_at_bottom <= WINDOW_WIDTH) pts.push_back( {x_at_bottom, WINDOW_HEIGHT} );
-
+    int y_left  = static_cast<int>(std::round(b));
+    if (y_left >= 0 && y_left <= WINDOW_HEIGHT) pts.push_back({0, y_left});
+    int y_right = static_cast<int>(std::round(m * WINDOW_WIDTH + b));
+    if (y_right >= 0 && y_right <= WINDOW_HEIGHT) pts.push_back({WINDOW_WIDTH, y_right});
+    int x_top    = static_cast<int>(std::round(-b / m));
+    if (x_top >= 0 && x_top <= WINDOW_WIDTH) pts.push_back({x_top, 0});
+    int x_bottom = static_cast<int>(std::round((WINDOW_HEIGHT - b) / m));
+    if (x_bottom >= 0 && x_bottom <= WINDOW_WIDTH) pts.push_back({x_bottom, WINDOW_HEIGHT});
     if (pts.size() < 2) return {p1, p2};
-    return { pts[0], pts[1] };
+    return {pts[0], pts[1]};
 }
 
 // -------------------- main -------------------------
@@ -107,7 +107,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
     bool multiPlaceMode = false;
     int  currentRadius  = DEFAULT_RADIUS;
     std::vector<Circle> circles;
-    bool showLine       = false;           // line visibility
+    std::vector<Line>   lines;          // store drawn lines
     SDL_Event e;
 
     while (running) {
@@ -130,8 +130,19 @@ int main(int /*argc*/, char* /*argv*/[]) {
                         handled = true;
                         switch (b.id) {
                             case ButtonId::PLACE: multiPlaceMode = !multiPlaceMode; break;
-                            case ButtonId::CLEAR: circles.clear(); showLine=false; break;
-                            case ButtonId::LINE:  showLine = true; break;
+                            case ButtonId::CLEAR: circles.clear(); lines.clear(); break;
+                            case ButtonId::LINE: {
+                                // attempt to draw line if exactly 2 selected circles
+                                std::vector<const Circle*> sel;
+                                for (const auto& c : circles) if (c.selected) sel.push_back(&c);
+                                if (sel.size() == 2) {
+                                    auto [p1,p2] = lineThroughWindow(sel[0]->center, sel[1]->center);
+                                    lines.push_back({p1,p2});
+                                    // deselect all circles
+                                    for (auto& c : circles) c.selected = false;
+                                }
+                                break;
+                            }
                         }
                         break;
                     }
@@ -152,17 +163,11 @@ int main(int /*argc*/, char* /*argv*/[]) {
             }
         }
 
-        // hide line if fewer than 2 selected
         int selectedCount = std::count_if(circles.begin(), circles.end(), [](const Circle& c){return c.selected;});
-        if (selectedCount < 2) showLine = false;
 
         // ---------- drawing ----------
         SDL_SetRenderDrawColor(renderer, BG_COLOR.r, BG_COLOR.g, BG_COLOR.b, BG_COLOR.a);
         SDL_RenderClear(renderer);
-
-        // red center line
-        SDL_SetRenderDrawColor(renderer, LINE_COLOR.r, LINE_COLOR.g, LINE_COLOR.b, LINE_COLOR.a);
-        SDL_RenderDrawLine(renderer, WINDOW_WIDTH/2, WINDOW_HEIGHT/2, WINDOW_WIDTH, WINDOW_HEIGHT/2);
 
         // buttons
         for (const auto& b : buttons) {
@@ -183,24 +188,21 @@ int main(int /*argc*/, char* /*argv*/[]) {
             aacircleRGBA(renderer, c.center.x, c.center.y, c.radius, cc.r, cc.g, cc.b, cc.a);
         }
 
-        // line between two selected circles
-        if (showLine && selectedCount >=2) {
-            // take first two selected
-            std::vector<const Circle*> sel;
-            for (const auto& c : circles) if (c.selected) sel.push_back(&c);
-            auto [p1,p2] = lineThroughWindow(sel[0]->center, sel[1]->center);
-            SDL_SetRenderDrawColor(renderer, SELECTED_COLOR.r,SELECTED_COLOR.g,SELECTED_COLOR.b,SELECTED_COLOR.a);
-            SDL_RenderDrawLine(renderer, p1.x, p1.y, p2.x, p2.y);
+        // drawn lines
+        SDL_SetRenderDrawColor(renderer, DRAWN_LINE_COLOR.r, DRAWN_LINE_COLOR.g, DRAWN_LINE_COLOR.b, DRAWN_LINE_COLOR.a);
+        for (const auto& ln : lines) {
+            SDL_RenderDrawLine(renderer, ln.p1.x, ln.p1.y, ln.p2.x, ln.p2.y);
         }
 
-        // HUD radius hint
+        // HUD
         std::string hud = "Radius:"+std::to_string(currentRadius)+ (multiPlaceMode?" (placing)":"") +
-                          "  Sel:" + std::to_string(selectedCount);
+                          "  Sel:" + std::to_string(selectedCount)+"  Lines:"+std::to_string(lines.size());
         stringRGBA(renderer, 10, 10, hud.c_str(), 255,255,255,255);
 
         SDL_RenderPresent(renderer);
     }
 
+    // ---- cleanup ----
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
