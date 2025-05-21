@@ -1,7 +1,7 @@
 Detecting compiler hash for triplet arm64-osx...
 Compiler found: /usr/bin/c++
 All requested packages are currently installed.
-Total install time: 68.5 us
+Total install time: 125 us
 sdl2 provides CMake targets:
 
     find_package(SDL2 CONFIG REQUIRED)
