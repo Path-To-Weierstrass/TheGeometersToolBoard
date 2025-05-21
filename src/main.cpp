@@ -112,6 +112,9 @@ int main(int /*argc*/, char* /*argv*/[])
                     }
                 }
             }
+            else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button==SDL_BUTTON_RIGHT){
+                multiPlaceMode=false;
+            }
         }
 
         int selectedCount = static_cast<int>(std::count_if(circles.begin(), circles.end(), [](const Circle& c){return c.selected;}));
