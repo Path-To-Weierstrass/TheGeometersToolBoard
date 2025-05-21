@@ -10,7 +10,7 @@
 //-------------------------------------------------------------------------
 
 /// All UI buttons are identified by a simple enum.
-enum class ButtonId : std::uint8_t { PLACE, CLEAR, LINE };
+enum class ButtonId : std::uint8_t { PLACE, CLEAR, LINE, PARALLEL };
 
 /// Rectangle + label + semantic ID.
 struct Button {
@@ -30,4 +30,5 @@ struct Circle {
 struct Line {
     SDL_Point p1; ///< One end of the rendered segment
     SDL_Point p2; ///< Other end
+    bool selected = false;
 };

@@ -37,7 +37,8 @@ int main(int /*argc*/, char* /*argv*/[])
     std::vector<Button> buttons = {
         { SDL_Rect{ WINDOW_WIDTH - btnW - pad, pad, btnW, btnH}, "Place", ButtonId::PLACE },
         { SDL_Rect{ WINDOW_WIDTH - 2*btnW - 2*pad, pad, btnW, btnH}, "Clear", ButtonId::CLEAR },
-        { SDL_Rect{ WINDOW_WIDTH - 3*btnW - 3*pad, pad, btnW, btnH}, "Draw Line", ButtonId::LINE }
+        { SDL_Rect{ WINDOW_WIDTH - 3*btnW - 3*pad, pad, btnW, btnH}, "Draw Line", ButtonId::LINE },
+        { SDL_Rect{ WINDOW_WIDTH - 4*btnW - 4*pad, pad, btnW, btnH}, "Parallel", ButtonId::PARALLEL }
     };
 
     // ------------- state -------------
@@ -76,13 +77,16 @@ int main(int /*argc*/, char* /*argv*/[])
                     if (pointInRect(mx, my, b.rect)) {
                         handled = true;
                         switch (b.id) {
-                            case ButtonId::PLACE:
+                            case ButtonId::PLACE:{
                                 multiPlaceMode = !multiPlaceMode;
                                 break;
-                            case ButtonId::CLEAR:
+                            }
+                               
+                            case ButtonId::CLEAR:{
                                 circles.clear();
                                 lines.clear();
                                 break;
+                                }
                             case ButtonId::LINE: {
                                 // draw line if two circles selected
                                 std::vector<const Circle*> sel;
@@ -92,8 +96,19 @@ int main(int /*argc*/, char* /*argv*/[])
                                     lines.push_back({ p1, p2 });
                                     for (auto& c : circles) c.selected = false;
                                 }
-                                break;
+                                break;    
                             }
+                            case ButtonId::PARALLEL: {
+                                 std::vector<const Circle*> sel;
+                                for (const auto& c : circles) if (c.selected) sel.push_back(&c);
+                                if (sel.size() == 2) {
+                                    auto [p1, p2] = lineThroughWindow(sel[0]->center, sel[1]->center);
+                                    lines.push_back({ p1, p2 });
+                                    for (auto& c : circles) c.selected = false;
+                                }
+                            }
+                                break;
+                        
                         }
                         break;
                     }
@@ -109,7 +124,16 @@ int main(int /*argc*/, char* /*argv*/[])
                             c.selected = !c.selected;
                             break;
                         }
+                       
+                    
+                     
                     }
+                    for(auto& l : lines){
+                            if(isPointNearLine(mx,my,l)){
+                                l.selected= !l.selected;
+                                break;
+                            }
+                        }
                 }
             }
             else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button==SDL_BUTTON_RIGHT){
@@ -117,7 +141,8 @@ int main(int /*argc*/, char* /*argv*/[])
             }
         }
 
-        int selectedCount = static_cast<int>(std::count_if(circles.begin(), circles.end(), [](const Circle& c){return c.selected;}));
+        int selectedCircCount = static_cast<int>(std::count_if(circles.begin(), circles.end(), [](const Circle& c){return c.selected;}));
+        
 
         // -------- rendering --------
         SDL_SetRenderDrawColor(renderer, BG_COLOR.r, BG_COLOR.g, BG_COLOR.b, BG_COLOR.a);
@@ -126,7 +151,7 @@ int main(int /*argc*/, char* /*argv*/[])
         for (const auto& b : buttons) drawButton(renderer, b, (b.id==ButtonId::PLACE && multiPlaceMode));
         drawCircles(renderer, circles);
         drawLines(renderer, lines);
-        drawHUD(renderer, currentRadius, multiPlaceMode, selectedCount, static_cast<int>(lines.size()));
+        drawHUD(renderer, currentRadius, multiPlaceMode, selectedCircCount, static_cast<int>(lines.size()));
 
         SDL_RenderPresent(renderer);
     }

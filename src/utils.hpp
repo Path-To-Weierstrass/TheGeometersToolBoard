@@ -73,3 +73,12 @@ inline std::pair<SDL_Point, SDL_Point> lineThroughWindow(const SDL_Point& p1,
     if (pts.size() < 2) return { p1, p2 };          // Fallback (parallel?)
     return { pts[0], pts[1] };                      // First two valid endpoints
 }
+
+bool isPointNearLine(int mX, int mY, const Line& l) {
+    float a = l.p1.y - l.p2.y;
+    float b = l.p2.x - l.p1.x;
+    float c = l.p1.x * l.p2.y - l.p2.x * l.p1.y;
+
+    float distance = std::abs(a * mX + b * mY + c) / std::sqrt(a * a + b * b);
+    return distance < SELECTION_RADIUS;
+}

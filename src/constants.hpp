@@ -23,5 +23,8 @@ constexpr SDL_Color BUTTON_LINE      {120, 60,  200, 255};
 // Drawing colors
 constexpr SDL_Color CIRCLE_COLOR     {255, 255, 255, 255};
 constexpr SDL_Color SELECTED_COLOR   {255, 255, 0,   255};
+constexpr SDL_Color SELECTED_LINE_COLOR {255, 1, 0,   255};
 constexpr SDL_Color BORDER_COLOR     {255, 255, 255, 255};
 constexpr SDL_Color DRAWN_LINE_COLOR {200, 200, 255, 255};
+
+constexpr float SELECTION_RADIUS = 10.0f;

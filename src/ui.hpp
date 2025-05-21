@@ -43,8 +43,10 @@ inline void drawCircles(SDL_Renderer* r, const std::vector<Circle>& circles)
 /// Draw all stored infinite lines.
 inline void drawLines(SDL_Renderer* r, const std::vector<Line>& lines)
 {
-    SDL_SetRenderDrawColor(r, DRAWN_LINE_COLOR.r, DRAWN_LINE_COLOR.g, DRAWN_LINE_COLOR.b, DRAWN_LINE_COLOR.a);
+
     for (const auto& ln : lines) {
+        const SDL_Color& col = ln.selected ? SELECTED_LINE_COLOR : DRAWN_LINE_COLOR;
+        SDL_SetRenderDrawColor(r, col.r, col.g, col.b, col.a);
         SDL_RenderDrawLine(r, ln.p1.x, ln.p1.y, ln.p2.x, ln.p2.y);
     }
 }
