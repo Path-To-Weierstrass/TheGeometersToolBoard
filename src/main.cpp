@@ -99,13 +99,33 @@ int main(int /*argc*/, char* /*argv*/[])
                                 break;    
                             }
                             case ButtonId::PARALLEL: {
-                                 std::vector<const Circle*> sel;
-                                for (const auto& c : circles) if (c.selected) sel.push_back(&c);
-                                if (sel.size() == 2) {
-                                    auto [p1, p2] = lineThroughWindow(sel[0]->center, sel[1]->center);
-                                    lines.push_back({ p1, p2 });
-                                    for (auto& c : circles) c.selected = false;
+                                std::vector<Line*> sel;  // <-- collect non-const pointers so we can modify them
+                                for (auto& l : lines) {
+                                    if (l.selected) sel.push_back(&l);
                                 }
+
+                                std::vector<const Circle*> selC;
+                                for (const auto& c : circles) {
+                                    if (c.selected) selC.push_back(&c);
+                                }
+                                if (sel.size() == 1 && selC.size() == 1) {
+                                    Line* selectedLine = sel[0];
+                                    const Circle* selectedCircle = selC[0];
+                                    // Compute direction vector of selected line
+                                    int dx = selectedLine->p2.x - selectedLine->p1.x;
+                                    int dy = selectedLine->p2.y - selectedLine->p1.y;
+                                    // First point of new line is the selected circle's center
+                                    SDL_Point p1 = selectedCircle->center;
+                                    // Second point is offset by the direction vector (preserves parallelism)
+                                    SDL_Point p2 = { p1.x + dx, p1.y + dy };
+                                    // Adjust to window if needed
+                                    auto [f1, f2] = lineThroughWindow(p1, p2);
+                                    // Add the new parallel line
+                                    lines.push_back({ f1, f2 });
+                                    // Deselect the original line
+                                    selectedLine->selected = false;
+                                }
+                                break;
                             }
                                 break;
                         
@@ -119,17 +139,17 @@ int main(int /*argc*/, char* /*argv*/[])
                 if (multiPlaceMode) {
                     circles.push_back({ {mx, my}, currentRadius, false });
                 } else {
+                    bool inCircVin = false;
                     for (auto& c : circles) {
                         if (pointInCircle(mx, my, c)) {
                             c.selected = !c.selected;
+                            inCircVin=true;
                             break;
-                        }
-                       
-                    
+                        }    
                      
                     }
-                    for(auto& l : lines){
-                            if(isPointNearLine(mx,my,l)){
+                    for(auto& l : lines ){
+                            if(isPointNearLine(mx,my,l)&& !inCircVin){
                                 l.selected= !l.selected;
                                 break;
                             }

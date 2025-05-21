@@ -6,8 +6,8 @@
 // Global configuration & color palette
 //-------------------------------------------------------------------------
 
-constexpr int WINDOW_WIDTH  = 800;
-constexpr int WINDOW_HEIGHT = 600;
+constexpr int WINDOW_WIDTH  = 1600;
+constexpr int WINDOW_HEIGHT = 1200;
 
 // Circle radius limits
 constexpr int DEFAULT_RADIUS = 10;
